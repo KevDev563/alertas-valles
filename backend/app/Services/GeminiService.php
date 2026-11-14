@@ -27,7 +27,7 @@ class GeminiService
             'parts' => [['text' => $prompt]],
         ];
 
-        $model = config('services.gemini.model', 'gemini-1.5-flash');
+        $model = config('services.gemini.model', 'gemini-3.5-flash');
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $response = Http::timeout(30)->post($url, [
