@@ -1,4 +1,4 @@
-package com.example.alertas_valles_movile
+package kevin.rodriguez.alertas_valles_mobile
 
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
@@ -13,7 +13,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
-import com.example.alertas_valles_movile.databinding.ActivityMainBinding
+import kevin.rodriguez.alertas_valles_mobile.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 

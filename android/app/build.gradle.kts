@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.alertas_valles_movile"
+    namespace = "kevin.rodriguez.alertas_valles_mobile"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.alertas_valles_movile"
+        applicationId = "kevin.rodriguez.alertas_valles_mobile"
         minSdk = 28
         targetSdk = 37
         versionCode = 1

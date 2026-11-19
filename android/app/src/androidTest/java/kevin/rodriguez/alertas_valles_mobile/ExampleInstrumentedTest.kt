@@ -1,4 +1,4 @@
-package com.example.alertas_valles_movile
+package kevin.rodriguez.alertas_valles_mobile
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.alertas_valles_movile", appContext.packageName)
+        assertEquals("kevin.rodriguez.alertas_valles_mobile", appContext.packageName)
     }
 }

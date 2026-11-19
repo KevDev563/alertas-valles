@@ -1,4 +1,4 @@
-package com.example.alertas_valles_movile
+package kevin.rodriguez.alertas_valles_mobile
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
-import com.example.alertas_valles_movile.databinding.FragmentSecondBinding
+import kevin.rodriguez.alertas_valles_mobile.databinding.FragmentSecondBinding
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.

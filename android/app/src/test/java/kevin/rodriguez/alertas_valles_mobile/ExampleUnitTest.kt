@@ -1,4 +1,4 @@
-package com.example.alertas_valles_movile
+package kevin.rodriguez.alertas_valles_mobile
 
 import org.junit.Test
 
