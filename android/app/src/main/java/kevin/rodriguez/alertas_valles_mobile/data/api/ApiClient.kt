@@ -9,7 +9,9 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    fun create(tokenProvider: () -> String?): ApiService {
+    fun create(baseUrl: String, tokenProvider: () -> String?): ApiService {
+        val normalizedBaseUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+
         val authInterceptor = Interceptor { chain ->
             val original = chain.request()
             val token = tokenProvider()
@@ -33,13 +35,13 @@ object ApiClient {
         val client = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(logging)
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(ApiConfig.BASE_URL)
+            .baseUrl(normalizedBaseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
