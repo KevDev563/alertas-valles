@@ -24,7 +24,7 @@ class AppRepository(
 
     suspend fun register(name: String, email: String, password: String): User {
         val response = api.register(RegisterRequest(name, email, password))
-        tokenStore.saveToken(response.token)
+        // No guardamos el token aquí: tras registrarse, el usuario vuelve al login.
         return response.user
     }
 

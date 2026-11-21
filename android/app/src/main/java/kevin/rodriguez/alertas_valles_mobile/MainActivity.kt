@@ -57,6 +57,8 @@ fun AlertasApp() {
 
     var currentBaseUrl by remember { mutableStateOf(ServerConfigStore.DEFAULT_BASE_URL) }
     var repository by remember { mutableStateOf(buildRepository(ServerConfigStore.DEFAULT_BASE_URL)) }
+    var authScreen by remember { mutableStateOf("login") } // "login" | "register"
+    var loginInfoMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(savedBaseUrl) {
         currentBaseUrl = savedBaseUrl
@@ -67,7 +69,7 @@ fun AlertasApp() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Alertas Valles") },
+                    title = { Text(if (authScreen == "register") "Registro" else "Inicio de sesión") },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -75,21 +77,45 @@ fun AlertasApp() {
                 )
             }
         ) { innerPadding ->
-            LoginScreen(
-                modifier = Modifier.padding(innerPadding),
-                initialBaseUrl = savedBaseUrl,
-                onSaveBaseUrl = { url ->
-                    val normalized = ServerConfigStore.normalize(url)
-                    serverConfigStore.saveBaseUrl(normalized)
-                    currentBaseUrl = normalized
-                    repository = buildRepository(normalized)
-                },
-                buildRepository = { buildRepository(it) },
-                repository = repository,
-                onLoginSuccess = { /* tokenFlow actualizará y mostrará Home */ }
-            )
+            if (authScreen == "register") {
+                kevin.rodriguez.alertas_valles_mobile.ui.screens.RegisterScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    baseUrl = currentBaseUrl.ifBlank { savedBaseUrl },
+                    onSaveBaseUrl = { url ->
+                        val normalized = ServerConfigStore.normalize(url)
+                        serverConfigStore.saveBaseUrl(normalized)
+                        currentBaseUrl = normalized
+                        repository = buildRepository(normalized)
+                    },
+                    buildRepository = { buildRepository(it) },
+                    onRegistered = { message ->
+                        loginInfoMessage = message
+                        authScreen = "login"
+                    },
+                    onBackToLogin = { authScreen = "login" }
+                )
+            } else {
+                LoginScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    initialBaseUrl = savedBaseUrl,
+                    infoMessage = loginInfoMessage,
+                    onSaveBaseUrl = { url ->
+                        val normalized = ServerConfigStore.normalize(url)
+                        serverConfigStore.saveBaseUrl(normalized)
+                        currentBaseUrl = normalized
+                        repository = buildRepository(normalized)
+                    },
+                    buildRepository = { buildRepository(it) },
+                    onLoginSuccess = {
+                        loginInfoMessage = null
+                        /* tokenFlow actualizará y mostrará Home */
+                    },
+                    onGoToRegister = { authScreen = "register" }
+                )
+            }
         }
     } else {
+        authScreen = "login"
         HomeScreen(
             repository = repository,
             baseUrl = currentBaseUrl,

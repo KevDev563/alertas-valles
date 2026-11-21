@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -36,142 +37,131 @@ import kotlinx.coroutines.withContext
 fun LoginScreen(
     modifier: Modifier = Modifier,
     initialBaseUrl: String,
+    infoMessage: String? = null,
     onSaveBaseUrl: suspend (String) -> Unit,
     buildRepository: (String) -> AppRepository,
-    repository: AppRepository,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onGoToRegister: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var baseUrl by remember(initialBaseUrl) { mutableStateOf(initialBaseUrl) }
     var email by remember { mutableStateOf("demo@alertas-valles.test") }
     var password by remember { mutableStateOf("password") }
-    var name by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf<String?>(null) }
+    var status by remember(infoMessage) { mutableStateOf<String?>(infoMessage) }
     var loading by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Conexión al servidor", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = baseUrl,
-            onValueChange = { baseUrl = it },
-            label = { Text("URL del servidor") },
-            placeholder = { Text("http://IP_DE_TU_PC:8000/") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Alertas Valles", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            "Inicia sesión para ver condiciones, alertas y avisos de la Región Valles.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = {
-                    scope.launch {
-                        loading = true
-                        status = "Probando conexión (GET /api/alerts)..."
-                        try {
-                            val normalized = ServerConfigStore.normalize(baseUrl)
-                            val repo = buildRepository(normalized)
-                            val count = withContext(Dispatchers.IO) { repo.alerts().size }
-                            onSaveBaseUrl(baseUrl)
-                            status = "Conexión exitosa. Alertas recibidas: $count"
-                        } catch (e: Exception) {
-                            status = "Error de conexión: ${e.message ?: e.toString()}"
-                        } finally {
-                            loading = false
-                        }
-                    }
-                },
-                enabled = !loading
-            ) { Text("Probar conexión") }
+
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Servidor", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = baseUrl,
+                    onValueChange = { baseUrl = it },
+                    label = { Text("URL del servidor") },
+                    placeholder = { Text("http://IP_DE_TU_PC:8000/") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                loading = true
+                                status = "Probando conexión..."
+                                try {
+                                    val normalized = ServerConfigStore.normalize(baseUrl)
+                                    val repo = buildRepository(normalized)
+                                    val count = withContext(Dispatchers.IO) { repo.alerts().size }
+                                    onSaveBaseUrl(baseUrl)
+                                    status = "Conexión exitosa. Alertas disponibles: $count"
+                                } catch (e: Exception) {
+                                    status = "Error de conexión: ${e.message ?: e.toString()}"
+                                } finally {
+                                    loading = false
+                                }
+                            }
+                        },
+                        enabled = !loading
+                    ) { Text("Probar conexión") }
+                }
+                Text(
+                    "Emulador: http://10.0.2.2:8000/  •  Celular: http://IP_DE_TU_PC:8000/",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Cuenta", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Nombre (solo para registrarse)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = {
-                    scope.launch {
-                        loading = true
-                        status = "Iniciando sesión..."
-                        try {
-                            val normalized = ServerConfigStore.normalize(baseUrl)
-                            onSaveBaseUrl(baseUrl)
-                            val repo = buildRepository(normalized)
-                            val user = withContext(Dispatchers.IO) { repo.login(email, password) }
-                            status = "Bienvenido, ${user.name}"
-                            onLoginSuccess()
-                        } catch (e: Exception) {
-                            status = "Error al iniciar sesión: ${e.message ?: e.toString()}"
-                        } finally {
-                            loading = false
-                        }
-                    }
-                },
-                enabled = !loading
-            ) { Text("Iniciar sesión") }
-
-            OutlinedButton(
-                onClick = {
-                    scope.launch {
-                        loading = true
-                        status = "Registrando..."
-                        try {
-                            val normalized = ServerConfigStore.normalize(baseUrl)
-                            onSaveBaseUrl(baseUrl)
-                            val repo = buildRepository(normalized)
-                            val user = withContext(Dispatchers.IO) {
-                                repo.register(name.ifBlank { "Usuario" }, email, password)
+        Card {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Acceso", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Correo") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Contraseña") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Button(
+                    onClick = {
+                        scope.launch {
+                            loading = true
+                            status = "Iniciando sesión..."
+                            try {
+                                val normalized = ServerConfigStore.normalize(baseUrl)
+                                onSaveBaseUrl(baseUrl)
+                                val repo = buildRepository(normalized)
+                                val user = withContext(Dispatchers.IO) { repo.login(email.trim(), password) }
+                                status = "Bienvenido, ${user.name}"
+                                onLoginSuccess()
+                            } catch (e: Exception) {
+                                status = "No se pudo iniciar sesión: ${e.message ?: e.toString()}"
+                            } finally {
+                                loading = false
                             }
-                            status = "Cuenta creada: ${user.name}"
-                            onLoginSuccess()
-                        } catch (e: Exception) {
-                            status = "Error al registrar: ${e.message ?: e.toString()}"
-                        } finally {
-                            loading = false
                         }
-                    }
-                },
-                enabled = !loading
-            ) { Text("Registrarse") }
+                    },
+                    enabled = !loading && email.isNotBlank() && password.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Iniciar sesión") }
+
+                OutlinedButton(
+                    onClick = onGoToRegister,
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Crear cuenta") }
+            }
         }
 
         if (loading) {
             CircularProgressIndicator()
         }
+
         status?.let {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Text(it, modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodyMedium)
             }
         }
-
-        Text(
-            text = "Emulador: http://10.0.2.2:8000/  •  Celular (misma red): http://IP_DE_TU_PC:8000/ (servidor con --host=0.0.0.0).",
-            style = MaterialTheme.typography.bodySmall
-        )
     }
 }
